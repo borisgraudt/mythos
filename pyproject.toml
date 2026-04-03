@@ -1,0 +1,19 @@
+[project]
+name = "mythos"
+version = "0.1.0"
+description = "mythos ai"
+requires-python = ">=3.11"
+
+dependencies = [
+    "torch>=2.5.0",
+    "numpy",
+    "tqdm",
+    "pyyaml",
+]
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]

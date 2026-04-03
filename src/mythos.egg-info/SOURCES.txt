@@ -1,0 +1,10 @@
+README.md
+pyproject.toml
+src/__init__.py
+src/model.py
+src/utils.py
+src/mythos.egg-info/PKG-INFO
+src/mythos.egg-info/SOURCES.txt
+src/mythos.egg-info/dependency_links.txt
+src/mythos.egg-info/requires.txt
+src/mythos.egg-info/top_level.txt

@@ -1,0 +1,10 @@
+# pythons
+__pycache__/
+data/
+checkpoints/
+.env
+mythos
+
+# egg info
+*.egg-info/
+src/*.egg-info/
