@@ -1,0 +1,21 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "Mythos: A 500M Parameter Language Model from Scratch"
+abstract: |
+  Mythos is an educational implementation of a decoder-only transformer
+  language model, designed to demystify large language models by building
+  every component from the ground up.
+authors:
+  - family-names: "Graudt"
+    given-names: "Boris"
+    affiliation: "Independent"
+repository-code: "https://github.com/borisgraudt/mythos"
+version: 0.1.0
+license: MIT
+date-released: 2026-04-07
+keywords:
+  - "deep learning"
+  - "language model"
+  - "transformer"
+  - "natural language processing"
+  - "educational"

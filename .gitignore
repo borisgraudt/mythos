@@ -1,10 +1,54 @@
-# pythons
+# Python
 __pycache__/
-data/
-checkpoints/
-.env
-mythos
+*.py[cod]
+*$py.class
+*.so
+.Python
 
-# egg info
+# Virtual environments
+venv/
+.venv/
+env/
+.env
+
+# Project specific
+checkpoints/
+runs/
+*.log
+
+# Data artifacts (not committed — download via scripts)
+data/raw/
+data/processed/
+data/encoded/
+data/interim/
+data/external/
+data/debug/
+data/splits/
+data/tokenizer/
+data/*.bin
+
+# Export artifacts
+export/
+
+# IDE / OS
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+.claude/
+
+# Package builds
 *.egg-info/
 src/*.egg-info/
+src/mythos.egg-info/
+dist/
+build/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Notebooks
+.ipynb_checkpoints/
