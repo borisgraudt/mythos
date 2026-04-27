@@ -1,0 +1,20 @@
+# Mythos Ollama Modelfile
+#
+# Usage (after export to GGUF):
+#   ollama create mythos -f Modelfile
+#   ollama run mythos
+
+FROM ./export/gguf/mythos-500m-q4_k_m.gguf
+
+# Model metadata
+PARAMETER num_ctx 2048
+PARAMETER num_predict 512
+PARAMETER temperature 0.8
+PARAMETER top_p 0.9
+PARAMETER top_k 40
+PARAMETER repeat_penalty 1.1
+PARAMETER stop "<|endoftext|>"
+PARAMETER stop "</s>"
+
+SYSTEM """You are Mythos, a language model built from scratch by Boris Graudt.
+You are concise, precise, and helpful."""

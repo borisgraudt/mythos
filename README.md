@@ -5,6 +5,7 @@
 **A 500M-parameter decoder-only language model, built from scratch.**
 
 [![Tests](https://github.com/borisgraudt/mythos/actions/workflows/tests.yml/badge.svg)](https://github.com/borisgraudt/mythos/actions)
+[![Lint](https://github.com/borisgraudt/mythos/actions/workflows/lint.yml/badge.svg)](https://github.com/borisgraudt/mythos/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Python 3.11+](https://img.shields.io/badge/Python-3.11+-blue.svg)](https://python.org)
 [![PyTorch 2.5+](https://img.shields.io/badge/PyTorch-2.5+-ee4c2c.svg)](https://pytorch.org)
@@ -28,7 +29,8 @@ The goal is not a toy: the full 500M model uses the same architectural technique
 | Weight tying | Embedding ↔ output matrix | Saves 33M params at 32K vocab |
 
 Full hyperparameter breakdowns are in [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).  
-Design rationale with citations is in [`docs/RESEARCH.md`](docs/RESEARCH.md).
+Design rationale with citations is in [`docs/RESEARCH.md`](docs/RESEARCH.md).  
+Technical report (architecture + training + results) is in [`REPORT.md`](REPORT.md).
 
 ## Model Variants
 
@@ -78,43 +80,46 @@ python scripts/infer.py \
 
 **Run all tests:**
 ```bash
-make test   # 34 tests
+make test   # 39 tests (37 unit + 2 integration)
 ```
 
 ## Project Layout
 
 ```
 mythos/
-├── src/
-│   ├── core/         # transformer.py, attention.py, mlp.py, norms.py, rope.py
-│   ├── training/     # trainer.py, loop.py, optimizer.py, scheduler.py, checkpoint.py
-│   ├── inference/    # generate.py, sampler.py
-│   └── utils/        # config.py, device.py, logging.py
-├── data/
-│   ├── dataset.py    # ShardDataset + DataPipeline
-│   └── pipelines/    # clean.py, deduplicate.py, tokenize.py
+├── REPORT.md               # technical report: architecture + training + results
+├── src/mythos/             # installable package (from mythos.core import ...)
+│   ├── core/               # transformer.py, attention.py, mlp.py, norms.py, rope.py
+│   ├── data/               # dataset.py + pipelines/{clean,tokenize,deduplicate}.py
+│   ├── training/           # trainer.py, loop.py, optimizer.py, scheduler.py, checkpoint.py
+│   ├── inference/          # generate.py, sampler.py
+│   └── utils/              # config.py, device.py, logging.py
 ├── scripts/
-│   ├── train.py      # training entry point
-│   ├── infer.py      # interactive generation
-│   ├── prepare_data.py  # download → clean → tokenize → encode → split
-│   ├── eval.py       # benchmarks (perplexity, LAMBADA, MMLU)
-│   ├── export_hf.py       # upload weights to HuggingFace Hub (custom format)
-│   ├── export_llama_hf.py # upload as LlamaForCausalLM (transformers / vLLM / TGI)
-│   └── export_gguf.py     # convert to GGUF for Ollama / llama.cpp
+│   ├── train.py            # training entry point
+│   ├── infer.py            # interactive generation
+│   ├── prepare_data.py     # download → clean → tokenize → encode → split
+│   ├── eval.py             # benchmarks (perplexity, LAMBADA, MMLU)
+│   ├── export_hf.py        # export as LlamaForCausalLM → HF Hub (Gemma-style)
+│   └── export_gguf.py      # convert to GGUF for Ollama / llama.cpp
 ├── configs/
-│   ├── model/        # debug.yaml, 150m.yaml, base_500m.yaml
-│   └── training/     # base.yaml
+│   ├── model/              # debug.yaml, 150m.yaml, base_500m.yaml
+│   └── training/           # base.yaml, ablation_mha.yaml, ablation_gelu.yaml
 ├── tests/
-│   ├── test_model.py    # 23 architecture tests
-│   └── test_training.py # 11 training loop tests
+│   ├── test_model.py       # 25 architecture unit tests
+│   ├── test_training.py    # 12 training loop unit tests
+│   └── integration/        # overfit smoke tests
 ├── notebooks/
-│   └── demo.ipynb          # load from HF + generation + attention viz
+│   ├── 01_architecture_walkthrough.ipynb  # RMSNorm → RoPE → GQA → SwiGLU
+│   ├── 02_inference_demo.ipynb            # load checkpoint + generate text
+│   └── 03_attention_analysis.ipynb        # attention heatmaps + entropy analysis
 ├── app.py                  # Gradio demo for HuggingFace Spaces
 └── docs/
     ├── ARCHITECTURE.md
     ├── RESEARCH.md
-    ├── TRAINING.md         # reproducible 500M training recipe
-    └── results.md
+    ├── TRAINING.md          # reproducible training recipe
+    ├── ABLATIONS.md         # GQA vs MHA, SwiGLU vs GeLU
+    ├── GIT_WORKFLOW.md      # branch / PR conventions
+    └── MODEL_CARD.md        # HuggingFace model card template
 ```
 
 ## Data Pipeline
@@ -151,7 +156,7 @@ _100K steps, batch_size=4, seq_len=512 on Apple M2._
 
 **HuggingFace Hub (LLaMA-compatible — recommended):**
 ```bash
-python scripts/export_llama_hf.py \
+python scripts/export_hf.py \
   --checkpoint checkpoints/base_500m/final.pt \
   --tokenizer data/medium/tokenizer/tokenizer.json \
   --repo your-username/mythos
