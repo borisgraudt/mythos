@@ -1,15 +1,69 @@
 [project]
 name = "mythos"
 version = "0.1.0"
-description = "mythos ai"
-requires-python = ">=3.11"
+description = "A 500M parameter language model from scratch — educational LLM implementation"
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.10"
+authors = [
+    { name = "Boris Graudt", email = "borisgraudt@gmail.com" }
+]
+keywords = [
+    "deep-learning",
+    "language-model",
+    "transformer",
+    "nlp",
+    "educational",
+    "llm"
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
 
 dependencies = [
+    # Core
     "torch>=2.5.0",
-    "numpy",
-    "tqdm",
-    "pyyaml",
+    "numpy>=1.24.0",
+    "tqdm>=4.65.0",
+    "pyyaml>=6.0",
+    # Data pipeline
+    "datasets>=2.18.0",        # HuggingFace datasets (streaming download)
+    "tokenizers>=0.19.0",      # Rust BPE tokenizer training
+    "huggingface-hub>=0.22.0", # Dataset/model hub auth + caching
+    "ftfy>=6.1.0",             # Unicode / encoding repair
+    "langdetect>=1.0.9",       # Language identification
+    # Export
+    "safetensors>=0.4.0",      # HF-compatible weight serialization
+    # CLI & logging
+    "rich>=13.0.0",            # Pretty CLI logging
+    "wandb>=0.17.0",           # Training metrics
 ]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+    "black>=23.0.0",
+    "ruff>=0.1.0",
+    "mypy>=1.0.0",
+]
+eval = [
+    "einops>=0.7.0",           # Tensor operations for eval
+    "scikit-learn>=1.0.0",     # Metrics
+]
+
+[project.scripts]
+mythos-train = "scripts.train:main"
+mythos-eval = "scripts.eval:main"
+mythos-infer = "scripts.infer:main"
+mythos-prepare-data = "scripts.prepare_data:main"
 
 [build-system]
 requires = ["setuptools>=61.0"]
@@ -17,3 +71,20 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
 where = ["src"]
+include = ["mythos*"]
+
+[tool.setuptools.package-data]
+mythos = ["py.typed"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "N"]
+
+[tool.mypy]
+python_version = "3.10"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false
