@@ -94,7 +94,7 @@ def main():
     print("Fitted scaling law:")
     print(f"  L(N,D) = {fit_result['E']:.3f} + {fit_result['A']:.1f}*N^-{fit_result['alpha']:.3f}"
           f" + {fit_result['B']:.1f}*D^-{fit_result['beta']:.3f}")
-    print(f"  Chinchilla reference: alpha=0.34, beta=0.28")
+    print("  Chinchilla reference: alpha=0.34, beta=0.28")
     print(f"  Fit log-MSE: {fit_result['loss']:.4f} over {fit_result['n_points']} points")
 
     try:

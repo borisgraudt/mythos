@@ -13,22 +13,21 @@ import logging
 import sys
 from pathlib import Path
 
-import yaml
 import torch
 from torch.utils.data import DataLoader
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
-from mythos.core.transformer import Mythos, ModelConfig
-from mythos.training.trainer import Trainer
+from mythos.core.transformer import Mythos
+from mythos.training.checkpoint import load_checkpoint
 from mythos.training.loop import training_loop
 from mythos.training.optimizer import build_optimizer
 from mythos.training.scheduler import CosineDecayWithWarmup
-from mythos.training.checkpoint import load_checkpoint
+from mythos.training.trainer import Trainer
+from mythos.utils.config import load_config
 from mythos.utils.device import get_device, set_seed
 from mythos.utils.logging import setup_logging
-from mythos.utils.config import load_config
 
 logger = logging.getLogger(__name__)
 
@@ -242,7 +241,9 @@ def main():
     wandb_run = None
     if args.wandb:
         try:
-            import os, wandb
+            import os
+
+            import wandb
             os.environ.setdefault("WANDB_SILENT", "true")  # suppresses broken _print_logged_in_message
             entity = args.wandb_entity
             if entity is None:

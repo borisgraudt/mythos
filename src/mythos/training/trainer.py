@@ -9,8 +9,8 @@ import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
 
-from .checkpoint import save_checkpoint
 from ..utils.device import get_device
+from .checkpoint import save_checkpoint
 
 logger = logging.getLogger(__name__)
 

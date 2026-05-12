@@ -23,12 +23,11 @@ import torch
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
-from mythos.core.transformer import Mythos, ModelConfig
-from mythos.training.checkpoint import load_checkpoint
+from mythos.core.transformer import ModelConfig, Mythos
 from mythos.inference.generate import generate, generate_stream
-from mythos.utils.device import get_device
+from mythos.training.checkpoint import load_checkpoint
 from mythos.utils.config import load_config
-
+from mythos.utils.device import get_device
 
 # ── Debug tokenizer (character-level, for testing without real tokenizer) ────
 

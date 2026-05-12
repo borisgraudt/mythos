@@ -6,7 +6,7 @@ readme = "README.md"
 license = { text = "MIT" }
 requires-python = ">=3.10"
 authors = [
-    { name = "Boris Graudt", email = "borisgraudt@gmail.com" }
+    { name = "Boris Graudt", email = "boris.graudt@gmail.com" }
 ]
 keywords = [
     "deep-learning",
@@ -81,9 +81,11 @@ mythos = ["py.typed"]
 [tool.ruff]
 line-length = 100
 target-version = "py310"
+exclude = ["notebooks/"]
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "N"]
+ignore = ["N806", "N812", "E501", "E402", "E741", "E702"]
 
 [tool.mypy]
 python_version = "3.10"
