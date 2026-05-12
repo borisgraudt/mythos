@@ -93,6 +93,10 @@ def training_loop(
     pbar = tqdm(total=max_steps, initial=resume_step, desc="Training", ncols=110)
     train_iter = iter(train_loader)
 
+    save_dir.mkdir(parents=True, exist_ok=True)
+    jsonl_path = save_dir / "train_log.jsonl"
+    jsonl_f = jsonl_path.open("a", buffering=1)
+
     for step in range(resume_step, max_steps):
         step_loss = 0.0
 
@@ -104,7 +108,7 @@ def training_loop(
                 train_iter = iter(train_loader)
                 batch = next(train_iter)
             step_loss    += trainer.train_step(batch)
-            tokens_seen  += batch["input_ids"].numel()
+            tokens_seen  += batch["input_ids"].numel() * accum_steps
 
         step_loss /= accum_steps
 
@@ -160,6 +164,13 @@ def training_loop(
             if wandb_run is not None:
                 wandb_run.log({"val/loss": val_loss, "val/perplexity": val_ppl},
                               step=step + 1)
+            jsonl_f.write(json.dumps({
+                "step": step + 1,
+                "tokens_seen": tokens_seen,
+                "train_loss": step_loss,
+                "val_loss": val_loss,
+                "val_ppl": val_ppl,
+            }) + "\n")
             trainer.maybe_save_checkpoint(val_loss, save_dir, save_every)
         elif (step + 1) % save_every == 0:
             avg_loss = sum(train_losses[-save_every:]) / min(len(train_losses), save_every)
@@ -170,6 +181,7 @@ def training_loop(
         pbar.update(1)
 
     pbar.close()
+    jsonl_f.close()
 
     # ── Final checkpoint ────────────────────────────────────────────────────
     final_loss = val_loader and trainer.evaluate(val_loader) or float("inf")

@@ -136,31 +136,58 @@ Cosine decay with linear warmup. For the 150M run:
 
 ---
 
-## Training Results (Mythos-150M, run 150m\_v2)
+## Current Training State (Mythos-150M, run `150m_v2`)
 
-The 150M model was trained for 16,000 steps on a subset of FineWeb-Edu + code data.
-
-### Training Configuration
+The 150M checkpoint shipped on HuggingFace is an **architectural smoke test**, not a compute-optimal model. It validates that the implementation trains stably end-to-end on real data, but is **deliberately undertrained** relative to Chinchilla-optimal compute.
 
 | Parameter | Value |
 |-----------|-------|
-| Steps | 16,000 of 50,000 |
-| Effective batch size | 4 × 512 = 2K tokens |
-| Learning rate | 3e-4 (cosine, 1K warmup) |
-| Hardware | MacBook Pro (M-series, CPU) |
-| Precision | bfloat16 |
+| Steps trained | 16,000 of 20,000 (planned) |
+| Effective batch | 4 × 512 = 2,048 tokens/step |
+| Tokens seen | ~33M (Chinchilla-optimal: ~3B, **~90× under**) |
+| LR schedule | cosine, peak 3e-4, 2K warmup |
+| Hardware | MacBook Air M3 16GB, MPS, bfloat16 |
+| Data | FineWeb-Edu + GitHub code subset |
 
-> **Note**: Full training (50K steps) on A100 is scheduled. Current checkpoints cover steps 2K–16K.
+> **Why publish an undertrained checkpoint?** It demonstrates the full pipeline (data → train → export → HF Hub → Gradio → GGUF) works end-to-end and produces a model that generates fluent local n-gram structure. It is **not** a claim of competitive quality at 150M scale.
 
-### Checkpoint Summary
+## Scientific Contribution: Scaling-Laws Study (in progress)
 
-| Checkpoint | Step | Status |
-|------------|------|--------|
-| step\_002000 | 2,000 | ✅ |
-| step\_004000 | 4,000 | ✅ |
-| ... | ... | ✅ |
-| step\_016000 | 16,000 | ✅ (best so far) |
-| final | 50,000 | ⏳ In progress |
+The research artifact this project produces is a **mini scaling-laws study at the 10M–80M parameter range**, all trained to Chinchilla-optimal compute (D ≈ 20·N), all reproducible on a single M3 Air. See [`docs/SCALING.md`](docs/SCALING.md) for the full protocol.
+
+### Plan
+
+| Model | Params | Tokens (D = 20N) | M3 Air wall-clock |
+|-------|--------|------------------|-------------------|
+| mythos-10m | 10M | 200M | ~6 hours |
+| mythos-30m | 30M | 600M | ~2 days |
+| mythos-80m | 80M | 1.6B | ~6 days |
+
+For each run we record `(N, D, train_loss, val_loss)` at every checkpoint and fit the parametric form from Hoffmann et al. (2022):
+
+```
+L(N, D) = E + A · N^(−α) + B · D^(−β)
+```
+
+The fitted exponents (α, β) are then compared with Chinchilla's reported values (α ≈ 0.34, β ≈ 0.28). A close match validates both the implementation and the data pipeline; a deviation is itself a finding worth investigating.
+
+### Status
+
+| Run | Status |
+|-----|--------|
+| 150m_v2 (smoke test) | ✅ done, checkpoints `step_002000`–`step_016000` |
+| 10m scaling | ⏳ planned |
+| 30m scaling | ⏳ planned |
+| 80m scaling | ⏳ planned |
+| 150m Chinchilla-optimal | ⏳ pending GPU access (~$25, 1× A100, 15 h) |
+
+## Limitations
+
+See [`docs/LIMITATIONS.md`](docs/LIMITATIONS.md) for an explicit list. Headline items:
+
+1. The shipped 150M checkpoint is undertrained; downstream benchmarks (LAMBADA, MMLU) are not yet meaningful and are intentionally **not** reported as quality claims.
+2. Ablation tables in `docs/ABLATIONS.md` will be filled in by the 30M Chinchilla-optimal runs — the 150M smoke test is not a useful ablation substrate.
+3. No multi-GPU / distributed training path; FSDP / DDP would be required for the 500M variant.
 
 ---
 

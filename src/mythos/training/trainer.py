@@ -71,7 +71,7 @@ class Trainer:
         return grad_norm
 
     @torch.no_grad()
-    def evaluate(self, val_loader: DataLoader) -> float:
+    def evaluate(self, val_loader: DataLoader, max_batches: int = 50) -> float:
         self.model.eval()
         total_loss, num_batches = 0.0, 0
         for batch in val_loader:
@@ -82,6 +82,8 @@ class Trainer:
             labels = labels[:, 1:].contiguous()
             total_loss += self.criterion(logits.view(-1, logits.size(-1)), labels.view(-1)).item()
             num_batches += 1
+            if max_batches and num_batches >= max_batches:
+                break
         return total_loss / max(num_batches, 1)
 
     def maybe_save_checkpoint(self, val_loss: float, save_dir: Path, save_every: int, is_final: bool = False):

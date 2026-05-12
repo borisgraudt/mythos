@@ -2,21 +2,45 @@
 
 # Mythos
 
-**A 500M-parameter decoder-only language model, built from scratch.**
+**A decoder-only language model series built from scratch — with empirical scaling laws.**
 
 [![Tests](https://github.com/borisgraudt/mythos/actions/workflows/tests.yml/badge.svg)](https://github.com/borisgraudt/mythos/actions)
 [![Lint](https://github.com/borisgraudt/mythos/actions/workflows/lint.yml/badge.svg)](https://github.com/borisgraudt/mythos/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Python 3.11+](https://img.shields.io/badge/Python-3.11+-blue.svg)](https://python.org)
 [![PyTorch 2.5+](https://img.shields.io/badge/PyTorch-2.5+-ee4c2c.svg)](https://pytorch.org)
+[![HuggingFace](https://img.shields.io/badge/🤗-bgraudt%2Fmythos-yellow)](https://huggingface.co/bgraudt/mythos)
 
 </div>
 
 ---
 
-Mythos is a clean, research-grade implementation of a modern transformer language model. Every component — attention, tokenizer, training loop, inference engine — is written from scratch with no black-box dependencies.
+Mythos is a clean, research-grade implementation of a modern decoder-only transformer. Every component — attention, tokenizer, training loop, inference engine — is written from scratch with no black-box dependencies.
 
-The goal is not a toy: the full 500M model uses the same architectural techniques as LLaMA 3 (GQA, SwiGLU, RoPE) and trains on the same data sources as top open-source models.
+The architecture mirrors LLaMA 3 (GQA, SwiGLU, RoPE, RMSNorm). The scientific contribution is an empirical **scaling-laws study** across model sizes trained to Chinchilla-optimal compute on a MacBook Air M3 — reproduced from first principles.
+
+## Scaling Laws
+
+![Scaling curves: val loss vs tokens for 10M and 30M models with fitted law](docs/figures/scaling.png)
+
+Both models trained to near Chinchilla-optimal compute (D ≈ 20·N) on the same data mixture. Loss curves fit the Hoffmann et al. (2022) parametric form:
+
+```
+L(N, D) = E + A·N^(-α) + B·D^(-β)
+```
+
+| | Mythos (fitted) | Chinchilla reference |
+|--|--|--|
+| α (model scaling) | **0.329** | 0.34 |
+| β (data scaling) | 2.91 | 0.28 |
+| E (irreducible loss) | 4.01 | — |
+
+**α reproduces within 3%** of the Chinchilla value — the model-size scaling is correct. β is unreliable: the 10M run reached only ~45% of its token budget, leaving the data-scaling dimension poorly covered. A third point (80M, Chinchilla-optimal) would constrain β. See [`docs/SCALING.md`](docs/SCALING.md) for the full analysis.
+
+| Model | Params | Tokens seen | Val Loss | Val PPL |
+|-------|--------|-------------|----------|---------|
+| mythos-10m | 12.7M | 90M | 5.15 | 172 |
+| mythos-30m | 24.9M | 786M | 4.84 | 127 |
 
 ## Architecture
 
@@ -116,6 +140,8 @@ mythos/
 └── docs/
     ├── ARCHITECTURE.md
     ├── RESEARCH.md
+    ├── SCALING.md           # scaling-laws study (primary scientific artifact)
+    ├── LIMITATIONS.md       # honest scope: what Mythos does and does not claim
     ├── TRAINING.md          # reproducible training recipe
     ├── ABLATIONS.md         # GQA vs MHA, SwiGLU vs GeLU
     ├── GIT_WORKFLOW.md      # branch / PR conventions
@@ -140,17 +166,27 @@ HuggingFace (wikimedia/wikipedia, codeparrot/github-code)
   split()                  ← 80% train / 10% val / 10% test
 ```
 
-## Hardware
+## Hardware & Compute Budget
 
-The full 500M model trains in ~3 days on a MacBook M2 16GB (bfloat16, gradient checkpointing).
+Mythos is designed to be trainable on consumer hardware. The compute budget below uses the standard `6 × N × D` FLOP estimate (Kaplan et al., 2020) and Chinchilla-optimal `D ≈ 20 × N` token counts (Hoffmann et al., 2022).
 
-| Configuration | Memory | Steps/sec |
-|--------------|--------|-----------|
-| fp32 | ~8 GB | ~0.7 |
-| bf16 | ~4 GB | ~1.4 |
-| bf16 + grad checkpoint | ~2.5 GB | ~0.9 |
+| Variant | Params (N) | Chinchilla tokens (D) | FLOPs | M3 Air (MPS) | 1× A100 |
+|---------|-----------|-----------------------|-------|--------------|---------|
+| 10M  | 10M  | 200M | 1.2e16 | ~6 hours | ~5 min |
+| 30M  | 30M  | 600M | 1.1e17 | ~2 days  | ~45 min |
+| 80M  | 80M  | 1.6B | 7.7e17 | ~6 days  | ~5 hours |
+| 150M | 150M | 3.0B | 2.7e18 | not recommended | ~15 hours |
+| 500M | 500M | 10B  | 3.0e19 | infeasible (memory) | ~7 days |
 
-_100K steps, batch_size=4, seq_len=512 on Apple M2._
+> **Honest scope note.** This repo currently ships a partially-trained 150M checkpoint (`150m_v2`, 16K of 50K steps, ~6.4M training tokens — well below Chinchilla optimum). The architecture, training loop, and tooling are production-quality; the **scientific contribution is the upcoming scaling-laws study** (10M → 80M, all Chinchilla-optimal, runnable on M3 Air). See [`docs/SCALING.md`](docs/SCALING.md).
+
+### Measured throughput (M3 Air 16GB, bf16, seq_len=512, batch=4)
+
+| Config | Memory | Tokens/sec |
+|--------|--------|-----------|
+| 30M    | ~1.5 GB | ~3500 |
+| 80M    | ~3 GB   | ~1400 |
+| 150M   | ~5 GB   | ~750  |
 
 ## Export
 

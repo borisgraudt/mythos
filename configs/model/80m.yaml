@@ -1,0 +1,27 @@
+model:
+  vocab_size: 32000
+  d_model: 512
+  n_layers: 12
+  n_heads: 8
+  n_kv_heads: 4
+  d_ff: 2048
+  max_seq_len: 512
+  dropout: 0.0
+  norm_eps: 1.0e-5
+  rope_theta: 10000.0
+
+training:
+  batch_size: 4
+  gradient_accumulation: 8
+  seq_len: 512
+  learning_rate: 4.0e-4
+  min_lr: 4.0e-5
+  warmup_steps: 1000
+  max_steps: 97600
+  weight_decay: 0.1
+  grad_clip: 1.0
+  bfloat16: true
+  log_every: 100
+  eval_every: 2000
+  save_every: 4000
+  checkpoint_dir: checkpoints/scaling_80m

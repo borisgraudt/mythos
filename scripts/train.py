@@ -63,15 +63,20 @@ def create_dummy_dataloader(seq_len: int, batch_size: int) -> DataLoader:
     return DataLoader(dataset, batch_size=batch_size, shuffle=True, collate_fn=collate)
 
 
-def create_real_dataloader(data_dir: Path, seq_len: int, batch_size: int) -> DataLoader:
+def create_real_dataloader(data_dir: Path, seq_len: int, batch_size: int, split: str = "train") -> DataLoader:
     from mythos.data.dataset import ShardDataset
 
-    train_file = data_dir / "splits" / "train.txt"
-    if not train_file.exists():
-        raise FileNotFoundError(f"Train split not found: {train_file}\nRun: python3.11 scripts/prepare_data.py --medium")
+    split_file = data_dir / "splits" / f"{split}.txt"
+    if not split_file.exists():
+        if split == "val":
+            return None
+        raise FileNotFoundError(f"{split} split not found: {split_file}\nRun: python scripts/prepare_data.py --target medium")
 
-    with open(train_file) as f:
+    with open(split_file) as f:
         shard_paths = [Path(p.strip()) for p in f if p.strip()]
+
+    if not shard_paths:
+        return None
 
     dataset = ShardDataset(shard_paths, seq_len=seq_len)
 
@@ -80,12 +85,13 @@ def create_real_dataloader(data_dir: Path, seq_len: int, batch_size: int) -> Dat
         labels    = torch.stack([b[1] for b in batch])
         return {"input_ids": input_ids, "labels": labels}
 
-    return DataLoader(dataset, batch_size=batch_size, shuffle=True, collate_fn=collate)
+    return DataLoader(dataset, batch_size=batch_size, shuffle=(split == "train"), collate_fn=collate)
 
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Mythos pretraining")
-    parser.add_argument("--mode", choices=["debug", "data", "full"], default="debug")
+    parser.add_argument("--mode", choices=["debug", "data", "full"], default=None,
+                        help="Run mode. If --model is given, defaults to 'full'; otherwise 'debug'.")
     parser.add_argument("--model",    type=Path, help="Model config YAML (full mode)")
     parser.add_argument("--training", type=Path, help="Training config YAML (full mode)")
     parser.add_argument("--data",     type=Path, default=ROOT / "data" / "medium", help="Data directory")
@@ -102,6 +108,9 @@ def parse_args():
 def main():
     args = parse_args()
     setup_logging(level=logging.DEBUG if args.verbose else logging.INFO)
+
+    if args.mode is None:
+        args.mode = "full" if args.model else "debug"
 
     logger.info("=" * 60)
     logger.info("Mythos Training")
@@ -149,11 +158,30 @@ def main():
                     _vocab, training_cfg["max_steps"], args.data)
 
     else:
-        if not args.model or not args.training:
-            raise ValueError("--model and --training required for full mode")
-        model_cfg    = load_config(args.model).get("model", {})
-        training_cfg = load_config(args.training).get("training", {})
-        logger.info("Mode: FULL | model=%s | training=%s", args.model, args.training)
+        if not args.model:
+            raise ValueError("--model required for full mode")
+        cfg_model = load_config(args.model)
+        model_cfg = cfg_model.get("model", {})
+        # Allow training section to live in same file (scaling configs) or a separate file.
+        if args.training:
+            training_cfg = load_config(args.training).get("training", {})
+        else:
+            training_cfg = cfg_model.get("training", {})
+            if not training_cfg:
+                raise ValueError("no training section in --model file and --training not given")
+
+        # Auto-detect vocab size from tokenizer if data dir provided
+        tok_path = args.data / "tokenizer" / "tokenizer.json"
+        if tok_path.exists():
+            try:
+                from tokenizers import Tokenizer as _Tok
+                _vocab = _Tok.from_file(str(tok_path)).get_vocab_size()
+                model_cfg["vocab_size"] = _vocab
+                logger.info("Detected vocab_size from tokenizer: %d", _vocab)
+            except Exception:
+                pass
+        logger.info("Mode: FULL | model=%s | training=%s",
+                    args.model, args.training or "(inline)")
 
     # ── Build model ──────────────────────────────────────────────────────
     set_seed(42)
@@ -183,9 +211,9 @@ def main():
         val_loader   = None
         logger.info("Data: dummy (debug)")
     else:
-        train_loader = create_real_dataloader(args.data, seq_len, batch_size)
-        val_loader   = None
-        logger.info("Data: %s", args.data)
+        train_loader = create_real_dataloader(args.data, seq_len, batch_size, split="train")
+        val_loader   = create_real_dataloader(args.data, seq_len, batch_size, split="val")
+        logger.info("Data: %s (val_loader: %s)", args.data, "yes" if val_loader else "no")
 
     # ── Trainer ──────────────────────────────────────────────────────────
     trainer = Trainer(
