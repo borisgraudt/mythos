@@ -44,6 +44,8 @@ dependencies = [
     # CLI & logging
     "rich>=13.0.0",            # Pretty CLI logging
     "wandb>=0.17.0",           # Training metrics
+    "scipy>=1.15.3",
+    "matplotlib>=3.10.9",
 ]
 
 [project.optional-dependencies]
