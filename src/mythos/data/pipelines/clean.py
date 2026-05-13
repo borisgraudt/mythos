@@ -13,7 +13,7 @@ All filters are configurable so you can tune precision/recall per data source.
 
 import re
 import unicodedata
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Optional
 
 # Optional dependency — graceful fallback if not installed
@@ -25,7 +25,7 @@ except ImportError:
 
 # Optional dependency — graceful fallback if not installed
 try:
-    from langdetect import detect, LangDetectException
+    from langdetect import LangDetectException, detect
     HAS_LANGDETECT = True
 except ImportError:
     HAS_LANGDETECT = False

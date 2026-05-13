@@ -25,7 +25,6 @@ Output layout (all under data/):
 from __future__ import annotations
 
 import logging
-import os
 import struct
 import time
 from dataclasses import dataclass, field
@@ -35,7 +34,7 @@ from typing import Dict, Iterator, List, Optional
 import numpy as np
 from tqdm import tqdm
 
-from mythos.data.pipelines.clean import TextCleaner, CleanerConfig
+from mythos.data.pipelines.clean import CleanerConfig, TextCleaner
 from mythos.data.pipelines.tokenize import MythosTokenizer
 
 # ── Python 3.14 / dill / datasets compatibility ─────────────────────────────

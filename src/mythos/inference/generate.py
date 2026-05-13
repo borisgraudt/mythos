@@ -16,8 +16,8 @@ from typing import Generator, List, Optional
 
 import torch
 
-from ..core.transformer import Mythos
 from ..core.attention import KVCache
+from ..core.transformer import Mythos
 from .sampler import greedy, sample_top_k, sample_top_p
 
 

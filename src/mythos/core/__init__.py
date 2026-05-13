@@ -1,8 +1,8 @@
-from .transformer import ModelConfig, Mythos, TransformerBlock
 from .attention import Attention
 from .mlp import FeedForward
 from .norms import RMSNorm
-from .rope import build_rope_cache, apply_rope
+from .rope import apply_rope, build_rope_cache
+from .transformer import ModelConfig, Mythos, TransformerBlock
 
 __all__ = [
     "ModelConfig", "Mythos", "TransformerBlock",

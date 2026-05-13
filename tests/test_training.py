@@ -14,12 +14,11 @@ import torch
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
-from mythos.core.transformer import Mythos, ModelConfig
+from mythos.core.transformer import ModelConfig, Mythos
+from mythos.training.checkpoint import load_checkpoint, save_checkpoint
 from mythos.training.optimizer import build_optimizer
 from mythos.training.scheduler import CosineDecayWithWarmup
 from mythos.training.trainer import Trainer
-from mythos.training.checkpoint import save_checkpoint, load_checkpoint
-
 
 # ── Fixtures ──────────────────────────────────────────────────────────────────
 

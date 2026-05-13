@@ -27,7 +27,7 @@ from torch.utils.data import DataLoader, TensorDataset
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
-from mythos.core.transformer import Mythos, ModelConfig
+from mythos.core.transformer import ModelConfig, Mythos
 from mythos.training.checkpoint import load_checkpoint
 from mythos.utils.device import get_device
 from mythos.utils.logging import setup_logging

@@ -30,7 +30,7 @@ import torch
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
-from mythos.core.transformer import Mythos, ModelConfig
+from mythos.core.transformer import ModelConfig, Mythos
 from mythos.training.checkpoint import load_checkpoint
 from mythos.utils.config import load_config
 
@@ -124,7 +124,7 @@ def quantize_gguf(gguf_file: Path, llama_cpp_path: Path, quant: str = "q4_k_m") 
     """Quantize GGUF with llama.cpp quantize binary."""
     quantize_bin = llama_cpp_path / "build" / "bin" / "llama-quantize"
     if not quantize_bin.exists():
-        print(f"llama-quantize not found. Build llama.cpp first: cd llama.cpp && cmake -B build && cmake --build build")
+        print("llama-quantize not found. Build llama.cpp first: cd llama.cpp && cmake -B build && cmake --build build")
         sys.exit(1)
 
     out_file = gguf_file.parent / f"mythos-500m-{quant}.gguf"
@@ -182,7 +182,7 @@ def main():
     if args.quantize != "f16":
         quantize_gguf(gguf_f16, args.llama_cpp, args.quantize)
 
-    print(f"""
+    print("""
 Done! Next steps:
   1. ollama create mythos -f Modelfile
   2. ollama run mythos

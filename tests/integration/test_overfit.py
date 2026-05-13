@@ -3,12 +3,13 @@
 A model that cannot overfit a single batch has a training bug.
 This test is the canonical sanity check before any full training run.
 """
-import torch
 import pytest
-from mythos.core.transformer import Mythos, ModelConfig
-from mythos.training.trainer import Trainer
+import torch
+
+from mythos.core.transformer import ModelConfig, Mythos
 from mythos.training.optimizer import build_optimizer
 from mythos.training.scheduler import CosineDecayWithWarmup
+from mythos.training.trainer import Trainer
 
 
 @pytest.fixture

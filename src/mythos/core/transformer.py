@@ -12,7 +12,7 @@ Design choices:
 """
 
 import math
-from dataclasses import dataclass, asdict
+from dataclasses import asdict, dataclass
 from typing import List, Optional, Tuple
 
 import torch

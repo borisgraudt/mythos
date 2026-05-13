@@ -20,18 +20,17 @@ Special tokens:
 
 from __future__ import annotations
 
-import json
 import logging
 from pathlib import Path
 from typing import Iterator, List, Optional, Union
 
 from tokenizers import Tokenizer
-from tokenizers.models import BPE
-from tokenizers.trainers import BpeTrainer
-from tokenizers.pre_tokenizers import ByteLevel as ByteLevelPre
 from tokenizers.decoders import ByteLevel as ByteLevelDecoder
+from tokenizers.models import BPE
 from tokenizers.normalizers import NFKC
+from tokenizers.pre_tokenizers import ByteLevel as ByteLevelPre
 from tokenizers.processors import TemplateProcessing
+from tokenizers.trainers import BpeTrainer
 
 logger = logging.getLogger(__name__)
 
@@ -104,8 +103,8 @@ class MythosTokenizer:
         bos = tokenizer.token_to_id("<bos>")
         eos = tokenizer.token_to_id("<eos>")
         tokenizer.post_processor = TemplateProcessing(
-            single=f"<bos>:0 $A:0 <eos>:0",
-            pair=f"<bos>:0 $A:0 <sep>:0 $B:0 <eos>:0",
+            single="<bos>:0 $A:0 <eos>:0",
+            pair="<bos>:0 $A:0 <sep>:0 $B:0 <eos>:0",
             special_tokens=[
                 ("<bos>", bos),
                 ("<eos>", eos),

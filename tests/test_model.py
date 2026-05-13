@@ -15,13 +15,12 @@ import torch
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
-from mythos.core.transformer import Mythos, ModelConfig, TransformerBlock
 from mythos.core.attention import Attention
 from mythos.core.mlp import FeedForward
 from mythos.core.norms import RMSNorm
-from mythos.core.rope import build_rope_cache, apply_rope
+from mythos.core.rope import apply_rope, build_rope_cache
+from mythos.core.transformer import ModelConfig, Mythos
 from mythos.utils.config import load_config
-
 
 # ── Fixtures ─────────────────────────────────────────────────────────────────
 
